@@ -1,0 +1,396 @@
+{% set form_data = form_data or {} %}
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthRisk AI | Premium Assessment</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            scroll-behavior: smooth;
+            background-color: #020617; /* slate-950 */
+        }
+        
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+        }
+        
+        .input-glow:focus {
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Custom radio styling for dark mode */
+        input[type="radio"]:checked + label {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            border-color: #60a5fa;
+            color: white;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+        }
+
+        /* BMI Slider Customization */
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body class="text-slate-200 min-h-screen pb-20">
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <div class="max-w-4xl mx-auto px-4 pt-12">
+        <header class="text-center mb-12 relative">
+            <div class="absolute -top-10 left-1/2 -translate-x-1/2 w-64 h-64 bg-blue-600/10 blur-[100px] rounded-full"></div>
+            <h1 class="text-5xl font-extrabold tracking-tight text-white mb-3">
+                HealthRisk <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-400">AI</span>
+            </h1>
+            <p class="text-slate-400 max-w-lg mx-auto text-lg">Predictive Analytics for Type 2 Diabetes Screening</p>
+            
+            <div class="mt-8 p-5 glass-panel rounded-2xl flex items-start gap-4 text-left border-blue-500/20">
+                <div class="bg-blue-500/20 p-2 rounded-lg">
+                    <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <p class="text-sm text-slate-400 leading-relaxed">
+                    <strong class="text-slate-200">Clinical Disclaimer:</strong> This engine uses statistical modeling based on BRFSS data. It is intended for informational screening and is <span class="text-blue-400 font-semibold">not a medical diagnosis</span>.
+                </p>
+            </div>
+        </header>
+
+        {% if error %}
+        <div class="mb-8 p-4 bg-red-950/30 border border-red-500/30 text-red-400 rounded-2xl flex items-center gap-3 animate-pulse">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+            <span class="font-medium">{{ error }}</span>
+        </div>
+        {% endif %}
+
+        <form action="/predict" method="POST" id="riskForm" class="space-y-10">
+            
+            <!-- Section 1: Demographics -->
+            <div class="glass-panel p-8 rounded-[2rem] border-slate-800/50">
+                <h2 class="text-xl font-bold mb-8 flex items-center gap-3 text-white">
+                    <span class="w-10 h-10 bg-blue-600/20 text-blue-400 rounded-xl flex items-center justify-center border border-blue-500/30">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                    </span>
+                    User Profile
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Sex -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-400 mb-4 ml-1">Biological Sex</label>
+                        <div class="flex gap-4">
+                            <div class="flex-1">
+                                <input type="radio" name="Sex" id="sex_0" value="0" class="hidden" {% if form_data.Sex == '0' %}checked{% endif %} required>
+                                <label for="sex_0" class="block text-center p-4 border-2 border-slate-800 rounded-2xl cursor-pointer transition-all hover:bg-slate-800 text-sm font-semibold">Female</label>
+                            </div>
+                            <div class="flex-1">
+                                <input type="radio" name="Sex" id="sex_1" value="1" class="hidden" {% if form_data.Sex == '1' %}checked{% endif %}>
+                                <label for="sex_1" class="block text-center p-4 border-2 border-slate-800 rounded-2xl cursor-pointer transition-all hover:bg-slate-800 text-sm font-semibold">Male</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Age -->
+                    <div>
+                        <label for="Age" class="block text-sm font-semibold text-slate-400 mb-4 ml-1">Age Category</label>
+                        <select name="Age" id="Age" class="w-full p-4 bg-slate-900 border-2 border-slate-800 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-slate-200 appearance-none cursor-pointer" required>
+                            <option value="" disabled {% if not form_data.Age %}selected{% endif %}>Select age range</option>
+                            {% for i in range(1, 14) %}
+                            {% set labels = ["", "18-24", "25-29", "30-34", "35-39", "40-44", "45-49", "50-54", "55-59", "60-64", "65-69", "70-74", "75-79", "80 or older"] %}
+                            <option value="{{ i }}" {% if form_data.Age == i|string %}selected{% endif %}>{{ labels[i] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Education -->
+                    <div>
+                        <label for="Education" class="block text-sm font-semibold text-slate-400 mb-4 ml-1">Education Level</label>
+                        <select name="Education" id="Education" class="w-full p-4 bg-slate-900 border-2 border-slate-800 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none text-slate-200 appearance-none" required>
+                            {% set edu_opts = [
+                                ('1', 'Never attended school'),
+                                ('2', 'Elementary only'),
+                                ('3', 'Some high school'),
+                                ('4', 'High school graduate'),
+                                ('5', 'Some college or tech school'),
+                                ('6', 'College graduate')
+                            ] %}
+                            {% for val, label in edu_opts %}
+                            <option value="{{ val }}" {% if form_data.Education == val or (not form_data.Education and val == '6') %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Income -->
+                    <div>
+                        <label for="Income" class="block text-sm font-semibold text-slate-400 mb-4 ml-1">Annual Household Income</label>
+                        <select name="Income" id="Income" class="w-full p-4 bg-slate-900 border-2 border-slate-800 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none text-slate-200 appearance-none" required>
+                            {% set inc_opts = [
+                                ('1', 'Less than $10,000'), ('2', '$10,000 - $15,000'), ('3', '$15,000 - $20,000'),
+                                ('4', '$20,000 - $25,000'), ('5', '$25,000 - $35,000'), ('6', '$35,000 - $50,000'),
+                                ('7', '$50,000 - $75,000'), ('8', '$75,000 or more')
+                            ] %}
+                            {% for val, label in inc_opts %}
+                            <option value="{{ val }}" {% if form_data.Income == val or (not form_data.Income and val == '8') %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel p-8 rounded-[2rem] border-slate-800/50 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 blur-3xl"></div>
+                <h2 class="text-xl font-bold mb-8 flex items-center gap-3 text-white">
+                    <span class="w-10 h-10 bg-emerald-600/20 text-emerald-400 rounded-xl flex items-center justify-center border border-emerald-500/30">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                    </span>
+                    Biometric Data
+                </h2>
+                
+                <div class="space-y-10">
+                    <div class="bg-slate-950/40 p-6 rounded-2xl border border-slate-800">
+                        <div class="flex justify-between items-center mb-6">
+                            <div>
+                                <label for="BMI" class="text-sm font-bold text-slate-300">Body Mass Index (BMI)</label>
+                                <p class="text-xs text-slate-500 mt-1">Weight (kg) / Height² (m)</p>
+                            </div>
+                            <div class="bg-blue-600/20 px-4 py-2 rounded-xl border border-blue-500/30">
+                                <span id="bmiVal" class="text-2xl font-black text-blue-400">{{ form_data.BMI or 24.0 }}</span>
+                            </div>
+                        </div>
+                        <input type="range" name="BMI" id="BMI" min="10" max="80" step="0.1" value="{{ form_data.BMI or 24.0 }}" 
+                               class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500" 
+                               oninput="document.getElementById('bmiVal').innerText = this.value">
+                        <div class="flex justify-between text-[10px] font-bold text-slate-500 mt-3 tracking-widest">
+                            <span>UNDERWEIGHT</span><span>OPTIMAL</span><span>OVERWEIGHT</span><span>OBESE</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-400 mb-4 ml-1">High Blood Pressure?</label>
+                            <div class="flex gap-4">
+                                <input type="radio" name="HighBP" id="bp_0" value="0" class="hidden" {% if form_data.HighBP == '0' or not form_data.HighBP %}checked{% endif %}>
+                                <label for="bp_0" class="flex-1 text-center p-4 border-2 border-slate-800 rounded-2xl cursor-pointer font-bold">NO</label>
+                                <input type="radio" name="HighBP" id="bp_1" value="1" class="hidden" {% if form_data.HighBP == '1' %}checked{% endif %}>
+                                <label for="bp_1" class="flex-1 text-center p-4 border-2 border-slate-800 rounded-2xl cursor-pointer font-bold">YES</label>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-400 mb-4 ml-1">High Cholesterol?</label>
+                            <div class="flex gap-4">
+                                <input type="radio" name="HighChol" id="chol_0" value="0" class="hidden" {% if form_data.HighChol == '0' or not form_data.HighChol %}checked{% endif %}>
+                                <label for="chol_0" class="flex-1 text-center p-4 border-2 border-slate-800 rounded-2xl cursor-pointer font-bold">NO</label>
+                                <input type="radio" name="HighChol" id="chol_1" value="1" class="hidden" {% if form_data.HighChol == '1' %}checked{% endif %}>
+                                <label for="chol_1" class="flex-1 text-center p-4 border-2 border-slate-800 rounded-2xl cursor-pointer font-bold">YES</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel p-8 rounded-[2rem] border-slate-800/50">
+                <h2 class="text-xl font-bold mb-8 flex items-center gap-3 text-white">
+                    <span class="w-10 h-10 bg-purple-600/20 text-purple-400 rounded-xl flex items-center justify-center border border-purple-500/30">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </span>
+                    History & Lifestyle
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+                    {% set habit_fields = [
+                        ('HeartDiseaseorAttack', 'Heart Disease History'), ('Stroke', 'Ever had a Stroke?'),
+                        ('DiffWalk', 'Serious Difficulty Walking?'), ('CholCheck', 'Cholesterol Check (5 yrs)'),
+                        ('Smoker', 'Are you a Smoker?'), ('HvyAlcoholConsump', 'Heavy Alcohol Use?'),
+                        ('PhysActivity', 'Regular Physical Activity?'), ('AnyHealthcare', 'Health Care Coverage?')
+                    ] %}
+
+                    {% for field_id, label in habit_fields %}
+                    <div class="flex items-center justify-between p-4 bg-slate-900/30 rounded-2xl border border-slate-800/50">
+                        <span class="text-sm font-medium text-slate-300">{{ label }}</span>
+                        <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+                            <input type="radio" name="{{ field_id }}" id="{{ field_id }}_0" value="0" class="hidden" {% if form_data[field_id] == '0' or (field_id not in ['CholCheck', 'PhysActivity', 'AnyHealthcare'] and not form_data[field_id]) %}checked{% endif %}>
+                            <label for="{{ field_id }}_0" class="px-4 py-1.5 text-[10px] font-black rounded-lg cursor-pointer hover:text-white">NO</label>
+                            
+                            <input type="radio" name="{{ field_id }}" id="{{ field_id }}_1" value="1" class="hidden" {% if form_data[field_id] == '1' or (field_id in ['CholCheck', 'PhysActivity', 'AnyHealthcare'] and not form_data[field_id]) %}checked{% endif %}>
+                            <label for="{{ field_id }}_1" class="px-4 py-1.5 text-[10px] font-black rounded-lg cursor-pointer hover:text-white">YES</label>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                    {% for field_id, label in [('Fruits', 'Daily Fruit?'), ('Veggies', 'Daily Veggies?'), ('NoDocbcCost', 'Cost Barrier?')] %}
+                    <div class="bg-slate-900/30 p-4 rounded-2xl border border-slate-800/50 text-center">
+                        <label class="block text-xs font-bold text-slate-500 mb-3 tracking-tighter">{{ label }}</label>
+                        <div class="flex gap-2">
+                            <input type="radio" name="{{ field_id }}" id="{{ field_id }}_0" value="0" class="hidden" {% if form_data[field_id] == '0' or (field_id == 'NoDocbcCost' and not form_data[field_id]) %}checked{% endif %}>
+                            <label for="{{ field_id }}_0" class="flex-1 py-2 text-[10px] font-bold border border-slate-800 rounded-lg cursor-pointer">NO</label>
+                            <input type="radio" name="{{ field_id }}" id="{{ field_id }}_1" value="1" class="hidden" {% if form_data[field_id] == '1' or (field_id != 'NoDocbcCost' and not form_data[field_id]) %}checked{% endif %}>
+                            <label for="{{ field_id }}_1" class="flex-1 py-2 text-[10px] font-bold border border-slate-800 rounded-lg cursor-pointer">YES</label>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="glass-panel p-8 rounded-[2rem] border-slate-800/50">
+                <h2 class="text-xl font-bold mb-8 flex items-center gap-3 text-white">
+                    <span class="w-10 h-10 bg-rose-600/20 text-rose-400 rounded-xl flex items-center justify-center border border-rose-500/30">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    </span>
+                    Wellness Perception
+                </h2>
+
+                <div class="space-y-10">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-400 mb-6 text-center">How would you rate your general health?</label>
+                        <div class="grid grid-cols-5 gap-3">
+                            {% for val, txt in [(1,'Excellent'), (2,'Very Good'), (3,'Good'), (4,'Fair'), (5,'Poor')] %}
+                            <div>
+                                <input type="radio" name="GenHlth" id="gh_{{ val }}" value="{{ val }}" class="hidden" {% if form_data.GenHlth == val|string or (not form_data.GenHlth and val == 3) %}checked{% endif %}>
+                                <label for="gh_{{ val }}" class="block text-center p-4 border-2 border-slate-800 rounded-2xl cursor-pointer text-[10px] font-black leading-tight hover:bg-slate-800 transition-all uppercase">
+                                    {{ txt }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="bg-slate-900/30 p-6 rounded-2xl border border-slate-800/50">
+                            <label for="MentHlth" class="block text-sm font-semibold text-slate-400 mb-3 text-center">Poor Mental Health Days</label>
+                            <div class="relative">
+                                <input type="number" name="MentHlth" id="MentHlth" min="0" max="30" value="{{ form_data.MentHlth or 0 }}" class="w-full p-4 bg-slate-950 border-2 border-slate-800 rounded-2xl outline-none text-center text-xl font-bold">
+                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-600 font-bold">DAYS</span>
+                            </div>
+                        </div>
+                        <div class="bg-slate-900/30 p-6 rounded-2xl border border-slate-800/50">
+                            <label for="PhysHlth" class="block text-sm font-semibold text-slate-400 mb-3 text-center">Poor Physical Health Days</label>
+                            <div class="relative">
+                                <input type="number" name="PhysHlth" id="PhysHlth" min="0" max="30" value="{{ form_data.PhysHlth or 0 }}" class="w-full p-4 bg-slate-950 border-2 border-slate-800 rounded-2xl outline-none text-center text-xl font-bold">
+                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-600 font-bold">DAYS</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-10">
+                <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black py-6 rounded-[2rem] shadow-[0_10px_40px_rgba(37,99,235,0.3)] transition-all active:scale-[0.98] flex items-center justify-center gap-3 text-xl tracking-wide uppercase">
+                    <span>Analyze Health Risk</span>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {% if prediction and prediction|length > 0 %}
+    <div id="result" class="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-slate-950/80 backdrop-blur-xl">
+        <div class="bg-slate-900 w-full max-w-lg rounded-[3rem] shadow-2xl p-10 text-center relative border border-slate-700">
+            <button onclick="document.getElementById('result').style.display='none'" class="absolute top-8 right-8 text-slate-500 hover:text-white transition-colors">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+
+            <div class="relative inline-flex items-center justify-center mb-8">
+                <svg class="w-32 h-32 transform -rotate-90">
+                    <circle cx="64" cy="64" r="58" stroke="currentColor" stroke-width="8" fill="transparent" class="text-slate-800" />
+                    <circle cx="64" cy="64" r="58" stroke="currentColor" stroke-width="8" fill="transparent" 
+                            stroke-dasharray="364.4" 
+                            stroke-dashoffset="{{ 364.4 * (1 - (probability|default(0))/100) }}"
+                            class="{% if risk == 'high' %}text-red-500{% else %}text-emerald-500{% endif %} transition-all duration-1000 ease-out" />
+                </svg>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <span class="text-3xl font-black text-white"><span id="counterNum">0</span>%</span>
+                </div>
+            </div>
+
+            <h3 class="text-xs font-black uppercase tracking-[0.3em] text-slate-500 mb-2">AI Assessment Output</h3>
+            <h2 class="text-4xl font-black text-white mb-6 uppercase tracking-tight">{{ prediction }}</h2>
+
+            <div class="bg-slate-950/50 rounded-3xl p-6 border border-slate-800 mb-10 text-sm text-slate-400">
+                {% if risk == 'high' %}
+                Our algorithms identified a significant density of risk markers. We recommend sharing these results with a medical professional.
+                {% else %}
+                Your indicators suggest a robust health profile. Continue your healthy routines and keep monitoring regularly.
+                {% endif %}
+            </div>
+
+            <button onclick="document.getElementById('result').style.display='none'" class="w-full py-5 bg-slate-100 text-slate-900 font-black rounded-2xl hover:bg-white transition-all transform hover:-translate-y-1">
+                DISMISS
+            </button>
+        </div>
+    </div>
+    {% endif %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            {% if prediction and prediction|length > 0 %}
+                const targetProb = {{ probability|default(0)|round }};
+                const counter = document.getElementById('counterNum');
+                let current = 0;
+                const timer = setInterval(() => {
+                    current += targetProb/75;
+                    if (current >= targetProb) {
+                        counter.innerText = Math.round(targetProb);
+                        clearInterval(timer);
+                    } else { counter.innerText = Math.round(current); }
+                }, 16);
+                {% if risk == 'low' %} startConfetti(); {% endif %}
+            {% endif %}
+
+            function startConfetti() {
+                const canvas = document.getElementById('confetti-canvas');
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                let pieces = [];
+                const colors = ['#3b82f6', '#10b981', '#ffffff'];
+                for (let i = 0; i < 150; i++) {
+                    pieces.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height - canvas.height, size: Math.random() * 8 + 4, color: colors[Math.floor(Math.random() * colors.length)], speed: Math.random() * 4 + 2, rotation: Math.random() * 2 * Math.PI, rotSpeed: Math.random() * 0.1 });
+                }
+                function draw() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    pieces.forEach(p => {
+                        p.y += p.speed; p.rotation += p.rotSpeed;
+                        ctx.save(); ctx.fillStyle = p.color; ctx.translate(p.x, p.y); ctx.rotate(p.rotation);
+                        ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size); ctx.restore();
+                        if (p.y > canvas.height) p.y = -20;
+                    });
+                    requestAnimationFrame(draw);
+                }
+                draw();
+            }
+        });
+    </script>
+</body>
+</html>
