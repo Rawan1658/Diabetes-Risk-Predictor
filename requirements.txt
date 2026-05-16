@@ -1,0 +1,15 @@
+## Rawan A. — Diabetes Risk Predictor
+## install: pip install -r requirements.txt
+
+# data + ML core
+numpy==1.26.4
+pandas==2.2.3
+scikit-learn==1.4.0
+joblib==1.3.2
+
+# plotting (notebook only)
+matplotlib==3.8.2
+seaborn==0.13.2
+
+# web stack
+flask==3.0.0

@@ -1,0 +1,103 @@
+{
+  "project": "Diabetes Risk Predictor",
+  "student": {
+    "name": "Rawan Abdelelah",
+    "id": "211001658",
+    "course": "Machine Learning Final Project (2026)"
+  },
+  "dataset": {
+    "name": "CDC BRFSS 2015 \u2014 Diabetes Health Indicators",
+    "rows_after_dedup": 229474,
+    "raw_columns": 24,
+    "target": "Diabetes_binary",
+    "positive_rate": 0.1529454317264701
+  },
+  "input_columns": [
+    "HighBP",
+    "HighChol",
+    "CholCheck",
+    "BMI",
+    "Smoker",
+    "Stroke",
+    "HeartDiseaseorAttack",
+    "PhysActivity",
+    "Fruits",
+    "Veggies",
+    "HvyAlcoholConsump",
+    "AnyHealthcare",
+    "NoDocbcCost",
+    "GenHlth",
+    "MentHlth",
+    "PhysHlth",
+    "DiffWalk",
+    "Sex",
+    "Age",
+    "Education",
+    "Income",
+    "HealthyHabits",
+    "RiskFactors"
+  ],
+  "selected_features_after_kbest": [
+    "HighBP",
+    "HighChol",
+    "CholCheck",
+    "BMI",
+    "Stroke",
+    "HeartDiseaseorAttack",
+    "PhysActivity",
+    "GenHlth",
+    "PhysHlth",
+    "DiffWalk",
+    "Age",
+    "Education",
+    "Income",
+    "HealthyHabits",
+    "RiskFactors"
+  ],
+  "k_best": 15,
+  "random_state": 42,
+  "model": "VotingClassifier(soft) over LogReg + RandomForest + GradientBoosting",
+  "comparison": [
+    {
+      "model": "Gradient Boosting",
+      "accuracy": 0.8545593201873842,
+      "precision": 0.586086086086086,
+      "recall": 0.16683288217694828,
+      "f1": 0.2597316180547854,
+      "roc_auc": 0.8151397535456398
+    },
+    {
+      "model": "Random Forest",
+      "accuracy": 0.853687765551803,
+      "precision": 0.6122599704579025,
+      "recall": 0.11810799259153726,
+      "f1": 0.19801743699988056,
+      "roc_auc": 0.8128101771915046
+    },
+    {
+      "model": "Logistic Regression",
+      "accuracy": 0.8504630134001525,
+      "precision": 0.5414893617021277,
+      "recall": 0.14503490525715915,
+      "f1": 0.2287897516574896,
+      "roc_auc": 0.8070450956974324
+    },
+    {
+      "model": "K-Nearest Neighbors",
+      "accuracy": 0.8478047717616298,
+      "precision": 0.5073977371627503,
+      "recall": 0.16612052999002708,
+      "f1": 0.2502951593860685,
+      "roc_auc": 0.7704421861517651
+    }
+  ],
+  "metrics_tuned_threshold": {
+    "threshold": 0.24,
+    "accuracy": 0.7951192940407452,
+    "precision": 0.38960918688646046,
+    "recall": 0.5993731300755093,
+    "f1": 0.47224560812706967,
+    "f2": 0.5411071667438391,
+    "roc_auc": 0.8139252055270555
+  }
+}
